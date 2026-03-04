@@ -109,6 +109,14 @@ class PlexPreviewApiClient:
             return await self._request("GET", API_PROCESSING_STATE)
         except PlexPreviewApiError:
             return {}
+            
+    async def get_jobs(self) -> list[dict]:
+        """Return the current jobs list from /api/jobs."""
+        try:
+            result = await self._request("GET", API_JOBS)
+            return self._as_list(result, "jobs")
+        except PlexPreviewApiError:
+            return []
 
     async def get_active_job(self) -> dict | None:
         """Prefer system status 'running_job'; fallback to scanning jobs list."""
