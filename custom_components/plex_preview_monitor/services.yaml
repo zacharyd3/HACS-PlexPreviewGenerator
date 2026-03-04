@@ -1,0 +1,80 @@
+trigger_job:
+  name: Trigger Job
+  description: Queue a preview generation job.
+  fields:
+    library_id:
+      name: Library ID
+      description: Plex library ID (preferred if known).
+      required: false
+      example: "2"
+      selector:
+        text:
+    library_name:
+      name: Library Name
+      description: Plex library name (e.g. "TV Shows", "Movies").
+      required: false
+      example: "TV Shows"
+      selector:
+        text:
+    force:
+      name: Force Regeneration
+      description: Re-generate previews even for media that already has them.
+      default: false
+      selector:
+        boolean:
+
+run_schedule:
+  name: Run Schedule
+  description: Run a configured schedule immediately.
+  fields:
+    schedule_id:
+      name: Schedule ID
+      description: Schedule ID from the app.
+      required: true
+      example: "1"
+      selector:
+        text:
+
+clear_jobs:
+  name: Clear Jobs
+  description: Clear jobs from the queue/history (optionally filtered by status).
+  fields:
+    statuses:
+      name: Statuses
+      description: List of statuses to clear (e.g. completed, failed, queued).
+      required: false
+      example: ["completed", "failed"]
+      selector:
+        object:
+
+reprocess_job:
+  name: Reprocess Job
+  description: Re-run preview generation for a specific job.
+  fields:
+    job_id:
+      name: Job ID
+      description: Job ID to reprocess.
+      required: true
+      example: "abc123"
+      selector:
+        text:
+
+delete_job:
+  name: Delete Job
+  description: Delete a specific job.
+  fields:
+    job_id:
+      name: Job ID
+      description: Job ID to delete.
+      required: true
+      example: "abc123"
+      selector:
+        text:
+
+pause_processing:
+  name: Pause Processing
+  description: Pause global processing.
+
+resume_processing:
+  name: Resume Processing
+  description: Resume global processing.

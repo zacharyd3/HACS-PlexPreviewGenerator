@@ -1,0 +1,14 @@
+{
+  "codeowners": [
+    "@zacharyd3"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/zacharyd3/HA-Plex-Preview-Generator",
+  "domain": "plex_preview_monitor",
+  "homeassistant": "2024.6.0",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/zacharyd3/HA-Plex-Preview-Generator/issues",
+  "name": "Plex Preview Generator",
+  "requirements": [],
+  "version": "1.1.3"
+}

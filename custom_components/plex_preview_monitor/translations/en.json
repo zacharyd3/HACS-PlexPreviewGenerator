@@ -1,0 +1,85 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Plex Preview Generator",
+        "description": "Enter the URL of your Plex Preview Generator instance. It can be running on the same machine as Home Assistant or on a remote server.",
+        "data": {
+          "url": "URL",
+          "token": "API Token (leave blank if auth is disabled)",
+          "scan_interval": "Poll interval (seconds)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect \u2014 check the URL and that Plex Preview Generator is running.",
+      "invalid_auth": "Invalid API token.",
+      "unknown": "Unexpected error. Check the Home Assistant logs."
+    },
+    "abort": {
+      "already_configured": "This Plex Preview Generator instance is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Plex Preview Monitor Options",
+        "data": {
+          "scan_interval": "Poll interval (seconds)",
+          "token": "API Token",
+          "default_library_name": "Default Library"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": {
+        "name": "Status"
+      },
+      "jobs_running": {
+        "name": "Jobs Running"
+      },
+      "jobs_queued": {
+        "name": "Jobs Queued"
+      },
+      "jobs_completed": {
+        "name": "Jobs Completed"
+      },
+      "jobs_failed": {
+        "name": "Jobs Failed"
+      },
+      "active_job": {
+        "name": "Active Job"
+      },
+      "active_job_progress": {
+        "name": "Active Job Progress"
+      },
+      "worker_count": {
+        "name": "Worker Count"
+      },
+      "paused": {
+        "name": "Processing Paused"
+      },
+      "pending_jobs": {
+        "name": "Pending Jobs"
+      },
+      "gpu_count": {
+        "name": "GPU Count"
+      }
+    },
+    "button": {
+      "pause": {
+        "name": "Pause Processing"
+      },
+      "resume": {
+        "name": "Resume Processing"
+      }
+    },
+    "switch": {
+      "processing_paused": {
+        "name": "Processing Paused"
+      }
+    }
+  }
+}
