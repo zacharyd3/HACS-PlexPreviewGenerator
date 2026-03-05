@@ -9,6 +9,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
+    SensorDeviceClass,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -20,6 +21,68 @@ from .const import CONF_URL, DATA_COORDINATOR, DOMAIN
 from .coordinator import PlexPreviewCoordinator, PlexPreviewData
 
 _LOGGER = logging.getLogger(__name__)
+
+def _parse_speed_x(value: Any) -> float | None:
+    """Parse speed like '12.7x' into 12.7."""
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    if not isinstance(value, str):
+        return None
+    s = value.strip().lower()
+    if s.endswith('x'):
+        s = s[:-1].strip()
+    try:
+        return float(s)
+    except ValueError:
+        return None
+
+def _parse_eta_seconds(value: Any) -> int | None:
+    """Parse ETA into seconds. Accepts '123s', '5m 22s', '01:23', '1:02:03', '2h3m4s'."""
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return int(float(value))
+    if not isinstance(value, str):
+        return None
+    s = value.strip().lower()
+    if not s:
+        return None
+    # 123s
+    if s.endswith('s') and s[:-1].strip().replace('.','',1).isdigit():
+        try:
+            return int(float(s[:-1].strip()))
+        except ValueError:
+            return None
+    # tokenized 2h3m4s / 5m22s / 5m 22s
+    import re
+    m = re.findall(r"(\d+(?:\.\d+)?)\s*([hms])", s)
+    if m:
+        total = 0.0
+        for num, unit in m:
+            try:
+                n = float(num)
+            except ValueError:
+                return None
+            if unit == 'h':
+                total += n * 3600
+            elif unit == 'm':
+                total += n * 60
+            else:
+                total += n
+        return int(total)
+    # colon formats MM:SS or HH:MM:SS
+    if ':' in s:
+        parts = [p.strip() for p in s.split(':')]
+        if all(p.isdigit() for p in parts) and 2 <= len(parts) <= 3:
+            nums = [int(p) for p in parts]
+            if len(nums) == 2:
+                mm, ss = nums
+                return mm * 60 + ss
+            hh, mm, ss = nums
+            return hh * 3600 + mm * 60 + ss
+    return None
 
 
 @dataclass(frozen=True)
@@ -173,6 +236,22 @@ STATIC_SENSORS: tuple[PlexPreviewSensorDescription, ...] = (
         value_fn=lambda d: d.active_job_progress,
     ),
     PlexPreviewSensorDescription(
+        key="active_job_processed_items",
+        name="Active Job Processed Items",
+        icon="mdi:counter",
+        native_unit_of_measurement="items",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda d: (d.active_job.get("progress") or {}).get("processed_items") if d.active_job else None,
+    ),
+    PlexPreviewSensorDescription(
+        key="active_job_total_items",
+        name="Active Job Total Items",
+        icon="mdi:counter",
+        native_unit_of_measurement="items",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda d: (d.active_job.get("progress") or {}).get("total_items") if d.active_job else None,
+    ),
+    PlexPreviewSensorDescription(
         key="worker_count",
         name="Worker Count",
         icon="mdi:cpu-64-bit",
@@ -303,6 +382,10 @@ class PlexPreviewWorkerSensor(CoordinatorEntity[PlexPreviewCoordinator], SensorE
         self._attr_native_unit_of_measurement = unit
         if unit == "%":
             self._attr_state_class = SensorStateClass.MEASUREMENT
+        if metric in ("speed", "eta"):
+            self._attr_state_class = SensorStateClass.MEASUREMENT
+        if metric == "eta":
+            self._attr_device_class = SensorDeviceClass.DURATION
         self._attr_device_info = _device_info(entry)
 
     def _find_worker(self) -> dict | None:
@@ -344,11 +427,10 @@ class PlexPreviewWorkerSensor(CoordinatorEntity[PlexPreviewCoordinator], SensorE
             return None
 
         if metric == "speed":
-            # "12.7x" style string
-            return worker.get("speed") or None
+            return _parse_speed_x(worker.get("speed"))
 
         if metric == "eta":
-            return worker.get("eta") or None
+            return _parse_eta_seconds(worker.get("eta"))
 
         if metric == "title":
             return worker.get("current_title") or None
